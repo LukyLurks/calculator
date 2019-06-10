@@ -1,0 +1,51 @@
+body, html {
+  font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+h1 {
+  font-size: 2.25rem;
+  font-weight: 300;
+  letter-spacing: 0.4px;
+  color: rgb(204, 149, 67);
+}
+
+.container {
+  text-align: center;
+  margin: auto;
+}
+
+#calculator {
+  border: 3px solid black;
+  padding: 0.5em;
+  margin: 0.5em auto;
+  width: 50%;
+}
+
+#calculator > * {
+  margin:.25em;
+}
+
+#calculatorScreen {
+  text-align: right;
+  border: 1px solid black;
+  padding: 0.5em;
+}
+
+#buttons {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(5, 1fr);
+}
+
+#divide {
+  grid-column-start: 4;
+}
+
+#equals {
+  grid-column-end: -1;
+  grid-row: 4 / 6;
+}
+
+#buttons > button {
+  display: inline-block;
+}
