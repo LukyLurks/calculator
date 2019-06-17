@@ -14,20 +14,53 @@ const operate = (operand1, operand2, operator) => {
   else if (operator === '-') return subtract(operand1, operand2);
   else if (operator === '*') return multiply(operand1, operand2);
   else if (operator === '/') return divide(operand1, operand2);
+  else return 0;
+};
+
+const parseExpr = operation => {
+  return [undefined, undefined, undefined];
+};
+
+// Takes an expression with parentheses
+const getPriorityOp = expr => {
+  return expr;
 };
 
 const calculateExpression = expr => {
-  return 1;
+  while(Number.isNaN(+expr)) {
+    let priorityOp = getPriorityOp(expr);
+    expr = expr.replace(priorityOp, operate(...parseSimpleExpr(priorityOp)));
+  }
+  return +expr;
 };
+
+const hasGoodParentheses = expr => {
+  return expr.split('').reduce((parentheseBalance, char) => {
+    if (char === '(') {
+      ++parentheseBalance;
+    } else if (char === ')') {
+      --parentheseBalance;
+    }
+    if (parentheseBalance < 0) {
+      parentheseBalance += Infinity;
+    }
+    return parentheseBalance;
+  }, 0) === 0;
+}
 
 const updateExpr = (expr, button) => {
   if (button.id === 'clear') {
-    expr.textContent = '';
+    expr.textContent = '.';
+    result.textContent = 0;
   } else if (button.id === 'backspace') {
     expr.textContent = expr.textContent.slice(0, -1);
   } else if (button.id === 'equals') {
+    if (!hasGoodParentheses(expr.textContent)) {
+      result.textContent = 'Error (parentheses)';
+    } else {
+      result.textContent = calculateExpression(expr.textContent);
+    }
     expr.textContent = '';
-    result.textContent = calculateExpression(expr);
   } else {
     expr.textContent += button.textContent;
   }
