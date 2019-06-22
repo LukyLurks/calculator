@@ -35,6 +35,10 @@ h1 {
   color: rgba(0, 0, 0, 0.5);
 }
 
+#result {
+  text-align: end;
+}
+
 #buttons {
   display: grid;
   grid-template-columns: repeat(5, 1fr);

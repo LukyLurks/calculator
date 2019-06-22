@@ -1,5 +1,3 @@
-let t0 = performance.now();
-
 const expression = document.querySelector('#expression');
 const result = document.querySelector('#result');
 const buttons = document.querySelector('#buttons');
@@ -21,16 +19,24 @@ const operate = (operand1, operand2, operator) => {
   else return 0;
 };
 
-const parseSimpleExpr = operation => {
-  return [undefined, undefined, undefined];
+const hasParentheses = expr => expr.indexOf(')') !== -1;
+
+const parseSimpleExpr = expr => {
+  if (hasParentheses(expr)) {
+    expr = expr.slice(1, -1);
+  }
+  let opIndex = expr.search(/[^0-9\.]/);
+  let operand1 = +expr.slice(0, opIndex);
+  let operand2 = +expr.slice(opIndex + 1);
+  let operator = expr.charAt(opIndex);
+  return [operand1, operand2, operator];
 };
 
 const getPriorityOp = expr => {
-  let hasParentheses = expr.indexOf(')') !== -1;
   let startIndex = 0;
   let endIndex = 0;
 
-  if (hasParentheses) {
+  if (hasParentheses(expr)) {
     endIndex = expr.indexOf(')') + 1;
     startIndex = expr.slice(0, endIndex).lastIndexOf('(');
   } else {
@@ -47,20 +53,22 @@ const getPriorityOp = expr => {
       opIndex = expr.indexOf('+');
     } else if (expr.indexOf('-') !== -1) {
       opIndex = expr.indexOf('-');
+    } else if (expr.indexOf('%') !== -1) {
+      opIndex = expr.indexOf('%');
     }
 
     leftOffset = expr.slice(0, opIndex)
-                     .split().reverse().join()
-                     .search(/[^0-9]/);
+                     .split('').reverse().join('')
+                     .search(/[^0-9\.]/);
     if (leftOffset < 0) leftOffset = expr.slice(0, opIndex).length;
     startIndex = opIndex - leftOffset;
 
-    rightOffset = expr.slice(opIndex + 1).search(/[^0-9]/);
+    rightOffset = expr.slice(opIndex + 1).search(/[^0-9\.]/);
     if (rightOffset < 0) rightOffset = expr.length - 1;
     endIndex = opIndex + rightOffset;
   }
   
-  return expr.slice(startIndex, endIndex);
+  return expr.slice(startIndex, endIndex + 1);
 };
 
 const calculateExpression = expr => {
@@ -83,32 +91,68 @@ const hasGoodParentheses = expr => {
     }
     return parentheseBalance;
   }, 0) === 0;
-}
+};
+
+const isOperator = c => {
+  let isOp = c === '+' ||
+             c === '-' ||
+             c === '×' ||
+             c === '÷' ||
+             c === '%' ||
+             c === '^'
+  return isOp;
+};
+
+const hasFloatPoint = expr => {
+  let flippedExprArray = expr.split('').reverse();
+  let hasFloatPoint = false;
+  let i = 0;
+  let len = flippedExprArray.length;
+  while (i < len &&
+         flippedExprArray[i] !== '(' ||
+         flippedExprArray[i] !== ')' ||
+         !isOperator(flippedExprArray[i])) {
+    if (flippedExprArray[i] === '.') {
+      hasFloatPoint = true;
+    }
+    i++;
+  }
+  return hasFloatPoint;
+};
 
 const updateExpr = (expr, button) => {
   if (button.id === 'clear') {
-    expr.textContent = '.';
+    expr.textContent = '　';
     result.textContent = 0;
   } else if (button.id === 'backspace') {
     expr.textContent = expr.textContent.slice(0, -1);
     if (expr.textContent === '') {
-      expr.textContent = '.';
+      expr.textContent = '　';
     }
   } else if (button.id === 'equals') {
     if (!hasGoodParentheses(expr.textContent)) {
       result.textContent = 'Error (parentheses)';
     } else {
-      result.textContent = calculateExpression(expr.textContent);
+      result.textContent = calculateExpression(expr.textContent.trim());
     }
-    expr.textContent = '.';
+    expr.textContent = '　';
+  } else if (button.classList.contains('operator')) {
+    if (expr.textContent === '　') return;
+    if (isOperator(expr.textContent.slice(-1))) {
+      expr.textContent = expr.textContent.slice(0, -1);
+    }
+    expr.textContent += button.textContent;
+  } else if (button.id === 'floatingPoint') {
+    if (expr.textContent === '　') {
+      expr.textContent += button.textContent;
+    } else if (hasFloatPoint(expr.textContent.trim())) {
+      expr.textContent += button.textContent;
+    }
   } else {
-    if (expr.textContent === '.') {
+    if (expr.textContent === '　') {
       expr.textContent = '';
     }
     expr.textContent += button.textContent;
-    if (button.id === 'sqrt') {
-      expr.textContent += '(';
-    }
   }
 }
 
@@ -117,5 +161,3 @@ buttons.addEventListener('click', e => {
     updateExpr(expression, e.target);
   }
 });
-
-console.log(`main.js ready in ${performance.now() - t0} ms.`);
