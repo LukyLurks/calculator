@@ -57,8 +57,8 @@ const getPriorityOp = expr => {
       opIndex = expr.indexOf('%');
     }
 
-    leftOffset = expr.slice(0, opIndex)
-                     .split('').reverse().join('')
+    leftOffset = [...expr.slice(0, opIndex)]
+                     .reverse().join('')
                      .search(/[^0-9\.]/);
     if (leftOffset < 0) leftOffset = expr.slice(0, opIndex).length;
     startIndex = opIndex - leftOffset;
@@ -74,13 +74,17 @@ const getPriorityOp = expr => {
 const calculateExpression = expr => {
   while(Number.isNaN(+expr)) {
     let priorityOp = getPriorityOp(expr);
-    expr = expr.replace(priorityOp, operate(...parseSimpleExpr(priorityOp)));
+    let resultPriorityOp = operate(...parseSimpleExpr(priorityOp));
+    if (resultPriorityOp === Infinity) {
+      return Infinity;
+    }
+    expr = expr.replace(priorityOp, resultPriorityOp);
   }
   return +expr;
 };
 
 const hasGoodParentheses = expr => {
-  return expr.split('').reduce((parentheseBalance, char) => {
+  return [...expr].reduce((parentheseBalance, char) => {
     if (char === '(') {
       ++parentheseBalance;
     } else if (char === ')') {
@@ -104,16 +108,17 @@ const isOperator = c => {
 };
 
 const hasFloatPoint = expr => {
-  let flippedExprArray = expr.split('').reverse();
+  let flippedExprArray = [...expr].reverse();
   let hasFloatPoint = false;
   let i = 0;
   let len = flippedExprArray.length;
-  while (i < len &&
-         flippedExprArray[i] !== '(' ||
-         flippedExprArray[i] !== ')' ||
-         !isOperator(flippedExprArray[i])) {
+  while ((i < len) &&
+         (flippedExprArray[i] !== '(' &&
+         flippedExprArray[i] !== ')' &&
+         !isOperator(flippedExprArray[i]))) {
     if (flippedExprArray[i] === '.') {
       hasFloatPoint = true;
+      break;
     }
     i++;
   }
@@ -138,6 +143,7 @@ const updateExpr = (expr, button) => {
     expr.textContent = '　';
   } else if (button.classList.contains('operator')) {
     if (expr.textContent === '　') return;
+    if (expr.textContent.slice(-1) === '.') return;
     if (isOperator(expr.textContent.slice(-1))) {
       expr.textContent = expr.textContent.slice(0, -1);
     }
@@ -145,9 +151,19 @@ const updateExpr = (expr, button) => {
   } else if (button.id === 'floatingPoint') {
     if (expr.textContent === '　') {
       expr.textContent += button.textContent;
-    } else if (hasFloatPoint(expr.textContent.trim())) {
+    } else if (!hasFloatPoint(expr.textContent.trim())) {
       expr.textContent += button.textContent;
     }
+  } else if (button.classList.contains('parenthese')) {
+    if (expr.textContent.slice(-1) === '.') return;
+    if (button.id === 'openParenthese') {
+      if (!isOperator(expr.textContent.slice(-1)) &&
+          expr.textContent !== '　') return;
+    }
+    if (button.id === 'closeParenthese') {
+      if (expr.textContent.search(/[0-9]/) === -1) return;
+    } 
+    expr.textContent += button.textContent;
   } else {
     if (expr.textContent === '　') {
       expr.textContent = '';
