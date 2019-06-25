@@ -71,8 +71,11 @@ const getPriorityOp = expr => {
     rightOffset = expr.slice(opIndex + 1).search(/[^0-9.-]/);
     if (rightOffset < 0) rightOffset = expr.length - 1;
     endIndex = opIndex + rightOffset;
-  };
+  }
+  if (isOperator(expr.slice(startIndex, endIndex + 1).slice(-1)))
     return expr.slice(startIndex, endIndex);
+  else
+    return expr.slice(startIndex, endIndex + 1);
 };
 
 const calculateExpression = expr => {
@@ -204,5 +207,37 @@ const updateExpr = (expr, button) => {
 buttons.addEventListener('click', e => {
   if (e.target.tagName.toLowerCase() === 'button') {
     updateExpr(expression, e.target);
+  }
+});
+
+window.addEventListener('keydown', e => {
+  console.log(String(e.key));
+  if (/Escape/i.test(String(e.key))) {
+    const esc = document.querySelector('#clear');
+    updateExpr(expression, esc);
+  } else if (/Backspace/i.test(String(e.key))) {
+    const back = document.querySelector('#backspace');
+    updateExpr(expression, back);
+  } else if (/Enter/i.test(String(e.key))) {
+    const enter = document.querySelector('#equals');
+    updateExpr(expression, enter);
+  } else if (String(e.key) === 's') {
+    const sign = document.querySelector('#sign');
+    updateExpr(expression, sign);
+  } else if (String(e.key) === '-') {
+    const minus = document.querySelector('#subtract');
+    updateExpr(expression, minus);
+  } else if (String(e.key) === '*') {
+    const mult = document.querySelector('#multiply');
+    updateExpr(expression, mult);
+  } else if (String(e.key) === '/') {
+    const divi = document.querySelector('#divide');
+    updateExpr(expression, divi);
+  } else {
+    [...buttons.children].forEach(button => {
+      if (String(e.key) === button.textContent) {
+        updateExpr(expression, button);
+      }
+    });
   }
 });
