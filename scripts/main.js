@@ -20,6 +20,7 @@ const operate = (operand1, operand2, operator) => {
     if (operand1) return operand1;
     if (operand2) return operand2;
   }
+  else return "Error"
 };
 
 const hasParentheses = expr => expr.indexOf(')') !== -1;
@@ -44,7 +45,7 @@ const getPriorityOp = expr => {
     endIndex = expr.indexOf(')') + 1;
     startIndex = expr.slice(0, endIndex).lastIndexOf('(');
   } else {
-    let opIndex = 0;
+    let opIndex = expr.search(/[]/);
     let leftOffset = 0;
     let rightOffset = 0;
     if (expr.indexOf('^') !== -1) {
@@ -53,12 +54,12 @@ const getPriorityOp = expr => {
       opIndex = expr.indexOf('×');
     } else if (expr.indexOf('÷') !== -1) {
       opIndex = expr.indexOf('÷');
+    } else if (expr.indexOf('%') !== -1) {
+      opIndex = expr.indexOf('%');
     } else if (expr.indexOf('−') !== -1) {
       opIndex = expr.indexOf('−');
     } else if (expr.indexOf('+') !== -1) {
       opIndex = expr.indexOf('+');
-    } else if (expr.indexOf('%') !== -1) {
-      opIndex = expr.indexOf('%');
     }
 
     leftOffset = [...expr.slice(0, opIndex)]
@@ -70,13 +71,8 @@ const getPriorityOp = expr => {
     rightOffset = expr.slice(opIndex + 1).search(/[^0-9.-]/);
     if (rightOffset < 0) rightOffset = expr.length - 1;
     endIndex = opIndex + rightOffset;
-  }
-  
-  if (isOperator(expr.slice(startIndex, endIndex + 1).slice(-1))) {
-    return expr.slice(startIndex, endIndex + 1);
-  } else {
+  };
     return expr.slice(startIndex, endIndex);
-  }
 };
 
 const calculateExpression = expr => {
@@ -84,7 +80,7 @@ const calculateExpression = expr => {
     let priorityOp = getPriorityOp(expr);
     let resultPriorityOp = operate(...parseSimpleExpr(priorityOp));
     if (resultPriorityOp === Infinity) {
-      return Infinity;
+      return "Error (Infinity)";
     }
     expr = expr.replace(priorityOp, resultPriorityOp);
   }
@@ -122,7 +118,6 @@ const hasFloatPoint = expr => {
   let len = flippedExprArray.length;
   while ((i < len) &&
          (flippedExprArray[i] !== '(' &&
-         flippedExprArray[i] !== ')' &&
          !isOperator(flippedExprArray[i]))) {
     if (flippedExprArray[i] === '.') {
       hasFloatPoint = true;
@@ -151,7 +146,7 @@ const changeLastOperandSign = expr => {
     operand = operand.slice(1);
   }
   return exprStem + operand;
-}
+};
 
 const updateExpr = (expr, button) => {
   if (button.id === 'clear') {
