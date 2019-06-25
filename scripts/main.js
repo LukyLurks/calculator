@@ -11,12 +11,15 @@ const percent = (a, b) => b / 100 * a;
 
 const operate = (operand1, operand2, operator) => {
   if (operator === '+') return add(operand1, operand2);
-  else if (operator === '-') return subtract(operand1, operand2);
+  else if (operator === '−') return subtract(operand1, operand2);
   else if (operator === '×') return multiply(operand1, operand2);
   else if (operator === '÷') return divide(operand1, operand2);
   else if (operator === '^') return pow(operand1, operand2);
   else if (operator === '%') return percent(operand1, operand2);
-  else return 0;
+  else if (!isOperator(operator)) {
+    if (operand1) return operand1;
+    if (operand2) return operand2;
+  }
 };
 
 const hasParentheses = expr => expr.indexOf(')') !== -1;
@@ -25,7 +28,8 @@ const parseSimpleExpr = expr => {
   if (hasParentheses(expr)) {
     expr = expr.slice(1, -1);
   }
-  let opIndex = expr.search(/[^0-9\.]/);
+  let opIndex = expr.search(/[^0-9.-]/);
+  if (opIndex === -1) return [expr];
   let operand1 = +expr.slice(0, opIndex);
   let operand2 = +expr.slice(opIndex + 1);
   let operator = expr.charAt(opIndex);
@@ -49,26 +53,30 @@ const getPriorityOp = expr => {
       opIndex = expr.indexOf('×');
     } else if (expr.indexOf('÷') !== -1) {
       opIndex = expr.indexOf('÷');
+    } else if (expr.indexOf('−') !== -1) {
+      opIndex = expr.indexOf('−');
     } else if (expr.indexOf('+') !== -1) {
       opIndex = expr.indexOf('+');
-    } else if (expr.indexOf('-') !== -1) {
-      opIndex = expr.indexOf('-');
     } else if (expr.indexOf('%') !== -1) {
       opIndex = expr.indexOf('%');
     }
 
     leftOffset = [...expr.slice(0, opIndex)]
                      .reverse().join('')
-                     .search(/[^0-9\.]/);
+                     .search(/-?[^0-9.-]/);
     if (leftOffset < 0) leftOffset = expr.slice(0, opIndex).length;
     startIndex = opIndex - leftOffset;
 
-    rightOffset = expr.slice(opIndex + 1).search(/[^0-9\.]/);
+    rightOffset = expr.slice(opIndex + 1).search(/[^0-9.-]/);
     if (rightOffset < 0) rightOffset = expr.length - 1;
     endIndex = opIndex + rightOffset;
   }
   
-  return expr.slice(startIndex, endIndex + 1);
+  if (isOperator(expr.slice(startIndex, endIndex + 1).slice(-1))) {
+    return expr.slice(startIndex, endIndex + 1);
+  } else {
+    return expr.slice(startIndex, endIndex);
+  }
 };
 
 const calculateExpression = expr => {
@@ -99,7 +107,7 @@ const hasGoodParentheses = expr => {
 
 const isOperator = c => {
   let isOp = c === '+' ||
-             c === '-' ||
+             c === '−' ||
              c === '×' ||
              c === '÷' ||
              c === '%' ||
@@ -124,6 +132,26 @@ const hasFloatPoint = expr => {
   }
   return hasFloatPoint;
 };
+
+const changeLastOperandSign = expr => {
+  let flippedExpr = [...expr].reverse().join('');
+  let operandStart = flippedExpr.search(/[+−×÷^%(]/);
+  if (operandStart === -1) {
+    if (expr.indexOf('-') === -1) {
+      return '-' + expr;
+    } else {
+      return expr.slice(1);
+    }
+  }
+  let operand = [...flippedExpr.slice(0, operandStart)].reverse().join('');
+  let exprStem = [...flippedExpr.slice(operandStart)].reverse().join('');
+  if (operand.indexOf('-') === -1) {
+    operand = '-' + operand;
+  } else {
+    operand = operand.slice(1);
+  }
+  return exprStem + operand;
+}
 
 const updateExpr = (expr, button) => {
   if (button.id === 'clear') {
@@ -158,12 +186,18 @@ const updateExpr = (expr, button) => {
     if (expr.textContent.slice(-1) === '.') return;
     if (button.id === 'openParenthese') {
       if (!isOperator(expr.textContent.slice(-1)) &&
+          expr.textContent.slice(-1) !== '-' &&
           expr.textContent !== '　') return;
     }
     if (button.id === 'closeParenthese') {
       if (expr.textContent.search(/[0-9]/) === -1) return;
     } 
     expr.textContent += button.textContent;
+  } else if (button.id === 'sign') {
+    expr.textContent = changeLastOperandSign(expr.textContent.trim());
+    if (expr.textContent === '') {
+      expr.textContent = '　';
+    }
   } else {
     if (expr.textContent === '　') {
       expr.textContent = '';
