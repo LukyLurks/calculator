@@ -45,7 +45,7 @@ const getPriorityOp = expr => {
     endIndex = expr.indexOf(')') + 1;
     startIndex = expr.slice(0, endIndex).lastIndexOf('(');
   } else {
-    let opIndex = expr.search(/[]/);
+    let opIndex = 0;
     let leftOffset = 0;
     let rightOffset = 0;
     if (expr.indexOf('^') !== -1) {
@@ -104,15 +104,7 @@ const hasGoodParentheses = expr => {
   }, 0) === 0;
 };
 
-const isOperator = c => {
-  let isOp = c === '+' ||
-             c === '−' ||
-             c === '×' ||
-             c === '÷' ||
-             c === '%' ||
-             c === '^'
-  return isOp;
-};
+const isOperator = c => /[+−×÷^%]/.test(c);
 
 const hasFloatPoint = expr => {
   let flippedExprArray = [...expr].reverse();
@@ -149,6 +141,18 @@ const changeLastOperandSign = expr => {
     operand = operand.slice(1);
   }
   return exprStem + operand;
+};
+
+const filterTrailingZeros = expr => {
+  let flippedExpr = [...expr].reverse().join('');
+  let lastOperandIndex = flippedExpr.search(/[^\d.-]/);
+  let lastOperand = flippedExpr.slice(0, lastOperandIndex);
+  if (lastOperand === '') return expr + '0';
+  if (hasFloatPoint(lastOperand) || +lastOperand !== 0) {
+    return expr + '0';
+  } else {
+    return expr;
+  }
 };
 
 const updateExpr = (expr, button) => {
@@ -196,6 +200,8 @@ const updateExpr = (expr, button) => {
     if (expr.textContent === '') {
       expr.textContent = '　';
     }
+  } else if (button.textContent === '0') {
+    expr.textContent = filterTrailingZeros(expr.textContent);
   } else {
     if (expr.textContent === '　') {
       expr.textContent = '';
@@ -211,7 +217,6 @@ buttons.addEventListener('click', e => {
 });
 
 window.addEventListener('keydown', e => {
-  console.log(String(e.key));
   if (/Escape/i.test(String(e.key))) {
     const esc = document.querySelector('#clear');
     updateExpr(expression, esc);
@@ -221,6 +226,7 @@ window.addEventListener('keydown', e => {
   } else if (/Enter/i.test(String(e.key))) {
     const enter = document.querySelector('#equals');
     updateExpr(expression, enter);
+    expression.textContent = '　';
   } else if (String(e.key) === 's') {
     const sign = document.querySelector('#sign');
     updateExpr(expression, sign);
