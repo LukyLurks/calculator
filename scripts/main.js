@@ -2,6 +2,16 @@ const expression = document.querySelector('#expression');
 const result = document.querySelector('#result');
 const buttons = document.querySelector('#buttons');
 
+const parentheseErr = 'ERROR: parentheses mismatch';
+const divideZeroErr = 'ERROR: divided by 0'
+const genericErr = 'ERROR: unexpected error'
+
+let lastExpr = '';
+let currentExpr = expression.textContent;
+let isDownLocked = true;
+let isUpLocked = true;
+
+
 const add = (a, b) => a + b;
 const subtract = (a, b) => a - b;
 const multiply = (a, b) => a * b;
@@ -18,12 +28,11 @@ const operate = (operand1, operand2, operator) => {
   else if (operator === '%') return percent(operand1, operand2);
   else if (!isOperator(operator)) {
     if (operand1) return operand1;
-    if (operand2) return operand2;
   }
-  else return "Error"
+  else return genericErr;
 };
 
-const hasParentheses = expr => expr.indexOf(')') !== -1;
+const hasParentheses = expr => /[()]/.test(expr);
 
 const parseSimpleExpr = expr => {
   if (hasParentheses(expr)) {
@@ -37,15 +46,19 @@ const parseSimpleExpr = expr => {
   return [operand1, operand2, operator];
 };
 
+// Get operation with highest precedence
 const getPriorityOp = expr => {
   let startIndex = 0;
-  let endIndex = 0;
+  let endIndex = expr.length;
+  let opIndex = 0;
 
+  // Starts with innermost parentheses if any
   if (hasParentheses(expr)) {
     endIndex = expr.indexOf(')') + 1;
     startIndex = expr.slice(0, endIndex).lastIndexOf('(');
+
+    // Otherwise apply PEMDAS
   } else {
-    let opIndex = 0;
     let leftOffset = 0;
     let rightOffset = 0;
     if (expr.indexOf('^') !== -1) {
@@ -62,6 +75,7 @@ const getPriorityOp = expr => {
       opIndex = expr.indexOf('+');
     }
 
+    // Gets the 2 operands left and right of the operator
     leftOffset = [...expr.slice(0, opIndex)]
                      .reverse().join('')
                      .search(/-?[^0-9.-]/);
@@ -78,12 +92,13 @@ const getPriorityOp = expr => {
     return expr.slice(startIndex, endIndex + 1);
 };
 
+// Simplifies the expression until we get a number
 const calculateExpression = expr => {
   while(Number.isNaN(+expr)) {
     let priorityOp = getPriorityOp(expr);
     let resultPriorityOp = operate(...parseSimpleExpr(priorityOp));
     if (resultPriorityOp === Infinity) {
-      return "Error (Infinity)";
+      return divideZeroErr;
     }
     expr = expr.replace(priorityOp, resultPriorityOp);
   }
@@ -91,6 +106,7 @@ const calculateExpression = expr => {
 };
 
 const hasGoodParentheses = expr => {
+  if (!hasParentheses(expr)) return true;
   return [...expr].reduce((parentheseBalance, char) => {
     if (char === '(') {
       ++parentheseBalance;
@@ -106,6 +122,7 @@ const hasGoodParentheses = expr => {
 
 const isOperator = c => /[+−×÷^%]/.test(c);
 
+// Checks if the last term in the expression is a float
 const hasFloatPoint = expr => {
   let flippedExprArray = [...expr].reverse();
   let hasFloatPoint = false;
@@ -143,21 +160,35 @@ const changeLastOperandSign = expr => {
   return exprStem + operand;
 };
 
-const filterTrailingZeros = expr => {
+const trimZeros = (expr, digit) => {
+  let lastOperand = getLastOperand(expr);
+  if (/[1-9]/.test(digit)) {
+    if (lastOperand === '0') {
+      expr = expr.slice(0, -1);
+    }
+    return expr + digit;
+  } else if (digit === '0') {
+    if (lastOperand === '') return expr + '0';
+    if (hasFloatPoint(lastOperand) || +lastOperand !== 0) {
+      return expr + '0';
+    } else {
+      return expr;
+    }
+  }
+};
+
+const getLastOperand = expr => {
   let flippedExpr = [...expr].reverse().join('');
   let lastOperandIndex = flippedExpr.search(/[^\d.-]/);
-  let lastOperand = flippedExpr.slice(0, lastOperandIndex);
-  if (lastOperand === '') return expr + '0';
-  if (hasFloatPoint(lastOperand) || +lastOperand !== 0) {
-    return expr + '0';
-  } else {
-    return expr;
-  }
+  return [...flippedExpr.slice(0, lastOperandIndex)].reverse().join('');
 };
 
 const updateExpr = (expr, button) => {
   if (button.id === 'clear') {
     expr.textContent = '　';
+    lastExpr = '　';
+    currentExpr = '　';
+    exprBuffer = '　';
     result.textContent = 0;
   } else if (button.id === 'backspace') {
     expr.textContent = expr.textContent.slice(0, -1);
@@ -165,8 +196,10 @@ const updateExpr = (expr, button) => {
       expr.textContent = '　';
     }
   } else if (button.id === 'equals') {
+    lastExpr = expr.textContent;
+    isUpLocked = false;
     if (!hasGoodParentheses(expr.textContent)) {
-      result.textContent = 'Error (parentheses)';
+      result.textContent = parentheseErr;
     } else {
       result.textContent = calculateExpression(expr.textContent.trim());
     }
@@ -200,13 +233,16 @@ const updateExpr = (expr, button) => {
     if (expr.textContent === '') {
       expr.textContent = '　';
     }
-  } else if (button.textContent === '0') {
-    expr.textContent = filterTrailingZeros(expr.textContent);
+  } else if (/\d/.test(button.textContent)) {
+    expr.textContent = trimZeros(expr.textContent, button.textContent);
   } else {
     if (expr.textContent === '　') {
       expr.textContent = '';
     }
     expr.textContent += button.textContent;
+  }
+  if (expr.textContent === '') {
+    expr.textContent = '　';
   }
 }
 
@@ -239,6 +275,17 @@ window.addEventListener('keydown', e => {
   } else if (String(e.key) === '/') {
     const divi = document.querySelector('#divide');
     updateExpr(expression, divi);
+  } else if (/ArrowUp/i.test(String(e.key))) {
+    if (lastExpr === '' || isUpLocked) return;
+    currentExpr = expression.textContent;
+    expression.textContent = lastExpr;
+    isUpLocked = true;
+    isDownLocked = false;
+  } else if (/ArrowDown/i.test(String(e.key))) {
+    if (isDownLocked) return;
+    expression.textContent = currentExpr;
+    isDownLocked = true;
+    isUpLocked = false;
   } else {
     [...buttons.children].forEach(button => {
       if (String(e.key) === button.textContent) {
