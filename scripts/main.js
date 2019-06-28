@@ -5,12 +5,19 @@ const buttons = document.querySelector('#buttons');
 const parentheseErr = 'ERROR: parentheses mismatch';
 const divideZeroErr = 'ERROR: divided by 0';
 const genericErr = 'ERROR: unexpected error';
-const numberRegex = /\(-?\d*\.?\d*\)/;
+const enclosedNumber = /\(-?\d*\.?\d*\)/;
+const number = /[^+−×÷^%()]-?\d*\.?\d*/;
+const numbers = /[^+−×÷^%()]-?\d*\.?\d*/g;
 
+// Last computed expression
 let lastExpr = '';
+// Buffers the expression the user was typing before they loaded the previous
 let currentExpr = expression.textContent;
+// Flags to keep this expression history working properly
 let isDownLocked = true;
 let isUpLocked = true;
+// +1 (resp. -1) when user inputs an opening (resp. closing) parenthese
+// Can't be negative
 let parentheseBalance = 0;
 
 const add = (a, b) => a + b;
@@ -39,7 +46,7 @@ const parseSimpleExpr = expr => {
   if (hasParentheses(expr)) {
     expr = expr.slice(1, -1);
   }
-  let opIndex = expr.search(/[^0-9.-]/);
+  let opIndex = expr.search(/[^\d.-]/);
   if (opIndex === -1) return [expr];
   let operand1 = +expr.slice(0, opIndex);
   let operand2 = +expr.slice(opIndex + 1);
@@ -47,53 +54,36 @@ const parseSimpleExpr = expr => {
   return [operand1, operand2, operator];
 };
 
-// Get operation with highest precedence
+// Get the substring containing the operation with highest precedence
 const getPriorityOp = expr => {
-  let startIndex = 0;
-  let endIndex = expr.length;
-  let opIndex = 0;
-
-  // Go in innermost parentheses if there are any
   if (hasParentheses(expr)) {
-    if (numberRegex.test(expr)) return expr.match(/\(-?\d*\.?\d*\)/)[0];
+    if (enclosedNumber.test(expr)) {
+      /** If there is an expression enclosed in parentheses, we simplify
+       * it until it becomes a number. At that point we return the number
+       * WITH its parentheses so that everything is simplified/replaced in
+       * the expression.
+       */
+      return expr.match(enclosedNumber)[0];
+    }
     let end = expr.indexOf(')');
     let start = expr.slice(0, end).lastIndexOf('(');
-    expr = expr.slice(start + 1, end)
-  }
-  let leftOffset = 0;
-  let rightOffset = 0;
-  if (expr.indexOf('^') !== -1) {
-    opIndex = expr.indexOf('^');
-  } else if (expr.indexOf('×') !== -1) {
-    opIndex = expr.indexOf('×');
-  } else if (expr.indexOf('÷') !== -1) {
-    opIndex = expr.indexOf('÷');
-  } else if (expr.indexOf('%') !== -1) {
-    opIndex = expr.indexOf('%');
-  } else if (expr.indexOf('−') !== -1) {
-    opIndex = expr.indexOf('−');
-  } else if (expr.indexOf('+') !== -1) {
-    opIndex = expr.indexOf('+');
+    expr = expr.slice(start + 1, end);
   }
 
-  // Gets the 2 operands left and right of the operator
-  leftOffset = [...expr.slice(0, opIndex)]
-                    .reverse().join('')
-                    .search(/-?[^0-9.-]/);
-  if (leftOffset < 0) leftOffset = expr.slice(0, opIndex).length;
-  startIndex = opIndex - leftOffset;
+  let opIndex = 0;
+  if (expr.indexOf('^') !== -1) opIndex = expr.indexOf('^');
+  else if (expr.indexOf('×') !== -1) opIndex = expr.indexOf('×');
+  else if (expr.indexOf('÷') !== -1) opIndex = expr.indexOf('÷');
+  else if (expr.indexOf('%') !== -1) opIndex = expr.indexOf('%');
+  else if (expr.indexOf('−') !== -1) opIndex = expr.indexOf('−');
+  else if (expr.indexOf('+') !== -1) opIndex = expr.indexOf('+');
 
-  rightOffset = expr.slice(opIndex + 1).search(/[^0-9.-]/);
-  if (rightOffset < 0) rightOffset = expr.length - 1;
-  endIndex = opIndex + rightOffset;
-  
-  if (isOperator(expr.slice(startIndex, endIndex + 1).slice(-1)))
-    return expr.slice(startIndex, endIndex);
-  else
-    return expr.slice(startIndex, endIndex + 1);
+  let leftOperand = getLastOperand(expr.slice(0, opIndex));
+  let rightOperand = expr.slice(opIndex + 1).match(number);
+  return leftOperand + expr.charAt(opIndex) + rightOperand;
 };
 
-// Simplifies the expression until we get a number
+// Simplifies the expression string until it's a number
 const calculateExpression = expr => {
   while(Number.isNaN(+expr)) {
     let priorityOp = getPriorityOp(expr);
@@ -106,6 +96,9 @@ const calculateExpression = expr => {
   return +expr;
 };
 
+/** Although the parentheses are counted as the expression is being written,
+ * We need to update the count when switching between current/old expression.
+ */
 const countParentheses = expr => {
   return [...expr].reduce((parentheseBalance, char) => {
     if (char === '(') ++parentheseBalance;
@@ -115,131 +108,151 @@ const countParentheses = expr => {
 }
 
 const isOperator = c => /[+−×÷^%]/.test(c);
-const hasOperator = expr => /[+−×÷^%]/.test(expr);
 
-// Checks if the last term in the expression is a float
-const hasFloatPoint = expr => {
-  let flippedExprArray = [...expr].reverse();
-  let hasFloatPoint = false;
-  let i = 0;
-  let len = flippedExprArray.length;
-  while ((i < len) &&
-         (flippedExprArray[i] !== '(' &&
-         !isOperator(flippedExprArray[i]))) {
-    if (flippedExprArray[i] === '.') {
-      hasFloatPoint = true;
-      break;
-    }
-    i++;
-  }
-  return hasFloatPoint;
-};
-
-const changeLastOperandSign = expr => {
-  let flippedExpr = [...expr].reverse().join('');
-  let operandStart = flippedExpr.search(/[+−×÷^%(]/);
-  if (operandStart === -1) {
-    if (expr.indexOf('-') === -1) {
-      return '-' + expr;
-    } else {
-      return expr.slice(1);
-    }
-  }
-  let operand = [...flippedExpr.slice(0, operandStart)].reverse().join('');
-  let exprStem = [...flippedExpr.slice(operandStart)].reverse().join('');
-  if (operand.indexOf('-') === -1) {
-    operand = '-' + operand;
-  } else {
-    operand = operand.slice(1);
-  }
-  return exprStem + operand;
-};
-
-const trimZeros = (expr, digit) => {
-  let lastOperand = getLastOperand(expr);
-  if (/[1-9]/.test(digit)) {
-    if (lastOperand === '0') {
-      expr = expr.slice(0, -1);
-    }
-    return expr + digit;
-  } else if (digit === '0') {
-    if (lastOperand === '') return expr + '0';
-    if (hasFloatPoint(lastOperand) || +lastOperand !== 0) {
-      return expr + '0';
-    } else {
-      return expr;
-    }
-  }
-};
+const isNumberFloat = operand => /\./.test(operand);
 
 const getLastOperand = expr => {
-  let flippedExpr = [...expr].reverse().join('');
-  let lastOperandIndex = flippedExpr.search(/[^\d.-]/);
-  return [...flippedExpr.slice(0, lastOperandIndex)].reverse().join('');
+  let operands = expr.match(numbers);
+  if (operands) {
+    return operands[operands.length - 1];
+  } else {
+    return null;
+  }
+};
+
+const resetCalculator = () => {
+  expression.textContent = '';
+  lastExpr = '';
+  currentExpr = '';
+  exprBuffer = '';
+  result.textContent = 0;
+  parentheseBalance = 0;
+  isUpLocked = true;
+  isDownLocked = true;
+};
+
+const backspace = (expr, lastChar) => {
+  if (lastChar === '(') {
+    parentheseBalance--;
+  } else if (lastChar === ')') {
+    parentheseBalance++;
+  }
+  expr.textContent = expr.textContent.slice(0, -1);
+};
+
+const updateResult = expr => {
+  lastExpr = expr.textContent;
+  isUpLocked = false;
+  if (parentheseBalance !== 0) {
+    result.textContent = parentheseErr;
+  } else {
+    result.textContent = calculateExpression(expr.textContent);
+  }
+  expr.textContent = '';
+  parentheseBalance = 0;
+};
+
+const appendOperator = (expr, button, lastChar) => {
+  if (isOperator(lastChar)) {
+    expr.textContent = expr.textContent.slice(0, -1);
+  }
+  if (expr.textContent !== '' && lastChar !== '.' && lastChar !== '(') {
+    expr.textContent += button.textContent;
+  }
+};
+
+const appendFloatPoint = (expr, button, lastChar) => {
+  let lastOperand = getLastOperand(expr.textContent);
+  if (expr.textContent === '') {
+    expr.textContent += button.textContent;
+  } else if (!isNumberFloat(lastOperand) && lastChar !== ')') {
+    expr.textContent += button.textContent;
+  }
+};
+
+const appendParenthese = (expr, button, lastChar) => {
+  if (expr.textContent.slice(-1) === '.') return;
+  if (button.id === 'openParenthese') {
+    if (isOperator(lastChar) || lastChar === '-' || lastChar === '(' ||
+        expr.textContent === '') {
+          expr.textContent += button.textContent;
+          parentheseBalance++;
+    }
+  } else if (button.id === 'closeParenthese') {
+    if (parentheseBalance >= 1 &&
+        (/\d/.test(lastChar) || lastChar === ')')) { 
+          expr.textContent += button.textContent;
+          parentheseBalance--;
+    }
+  }
+};
+
+const appendDigits = (expr, digit, lastChar) => {
+  let lastOperand = getLastOperand(expr.textContent);
+  if (!lastOperand) {
+    expr.textContent += digit;
+  } else {
+    if (/[1-9]/.test(digit)) {
+      // Preventing leading zeroes
+      if (lastOperand === '0') {
+        // Can't use replace("lastOperand", `${digit}`), if there's more
+        // than 1 occurence of lastOperand ; only the first would be replaced.
+        let index = expr.textContent.lastIndexOf(lastOperand);
+        let start = expr.textContent.slice(0, zeroIndex);
+        expr.textContent = start + `${digit}${expr.textContent.slice(index)}`;
+      } else if (lastChar !== ')') {
+        expr.textContent += digit;
+      }
+    } else if (digit === '0') {
+      // Preventing trailing zeroes
+      if (isNumberFloat(lastOperand) || +lastOperand !== 0) {
+        expr.textContent += '0';
+      }
+    }
+  }
+};
+
+const changeLastOperandSign = (expr, lastChar) => {
+  let lastOperand = getLastOperand(expr.textContent);
+  if (!lastOperand) {
+    if (lastChar === '-') {
+      expr.textContent = expr.textContent.slice(0, -1);
+    } else {
+      expr.textContent += '-';
+    }
+  } else {
+    // Can't use replace("lastOperand", `-${lastOperand}`), if there's more
+    // than 1 occurence of lastOperand ; only the first would be replaced.
+    let signIndex = expr.textContent.lastIndexOf(lastOperand);
+    let exprStart = expr.textContent.slice(0, signIndex);
+    if (/-/.test(lastOperand)) {
+      expr.textContent = exprStart + expr.textContent.slice(signIndex + 1);
+    } else {
+      expr.textContent = exprStart + `-${expr.textContent.slice(signIndex)}`;
+    }
+  }
 };
 
 const updateExpr = (expr, button) => {
   expr.textContent = expr.textContent.trim();
   let lastChar = expr.textContent.slice(-1);
+
   if (button.id === 'clear') {
-    expr.textContent = '';
-    lastExpr = '';
-    currentExpr = '';
-    exprBuffer = '';
-    result.textContent = 0;
-    parentheseBalance = 0;
+    resetCalculator();
   } else if (button.id === 'backspace') {
-    if (lastChar === '(') {
-      parentheseBalance--;
-    } else if (lastChar === ')') {
-      parentheseBalance++;
-    }
-    expr.textContent = expr.textContent.slice(0, -1);
+    backspace(expr, lastChar);
   } else if (button.id === 'equals') {
-    lastExpr = expr.textContent;
-    isUpLocked = false;
-    if (parentheseBalance !== 0) {
-      result.textContent = parentheseErr;
-    } else {
-      result.textContent = calculateExpression(expr.textContent);
-    }
-    expr.textContent = '';
-    parentheseBalance = 0;
+    updateResult(expr);
   } else if (button.classList.contains('operator')) {
-    if (isOperator(lastChar)) {
-      expr.textContent = expr.textContent.slice(0, -1);
-    }
-    if (expr.textContent !== '' && lastChar !== '.' && lastChar !== '(') {
-      expr.textContent += button.textContent;
-    }
+    appendOperator(expr, button, lastChar);
   } else if (button.id === 'floatingPoint') {
-    if (expr.textContent === '') {
-      expr.textContent += button.textContent;
-    } else if (!hasFloatPoint(expr.textContent)) {
-      expr.textContent += button.textContent;
-    }
+    appendFloatPoint(expr, button, lastChar);
   } else if (button.classList.contains('parenthese')) {
-    if (expr.textContent.slice(-1) === '.') return;
-    if (button.id === 'openParenthese') {
-      if (isOperator(lastChar) ||
-          lastChar === '-' ||
-          lastChar === '(' ||
-          expr.textContent === '') {
-            expr.textContent += button.textContent;
-            parentheseBalance++;
-      }
-    }
-    if (button.id === 'closeParenthese') {
-      if (parentheseBalance >= 1 &&
-          (/\d/.test(lastChar) || lastChar === ')')) { 
-            expr.textContent += button.textContent;
-            parentheseBalance--;
-      }
-    } 
+    appendParenthese(expr, button, lastChar);
   } else if (button.id === 'sign') {
-    expr.textContent = changeLastOperandSign(expr.textContent);
+    changeLastOperandSign(expr, lastChar);
   } else if (/\d/.test(button.textContent)) {
-    expr.textContent = trimZeros(expr.textContent, button.textContent);
+    appendDigits(expr, button.textContent, lastChar);
   }
   // For display purposes I can't have an empty expression
   if (expr.textContent === '') {
@@ -253,6 +266,7 @@ buttons.addEventListener('click', e => {
   }
 });
 
+// Support for keyboard input
 window.addEventListener('keydown', e => {
   if (/Escape/i.test(String(e.key))) {
     const esc = document.querySelector('#clear');
