@@ -3,14 +3,15 @@ const result = document.querySelector('#result');
 const buttons = document.querySelector('#buttons');
 
 const parentheseErr = 'ERROR: parentheses mismatch';
-const divideZeroErr = 'ERROR: divided by 0'
-const genericErr = 'ERROR: unexpected error'
+const divideZeroErr = 'ERROR: divided by 0';
+const genericErr = 'ERROR: unexpected error';
+const numberRegex = /\(-?\d*\.?\d*\)/;
 
 let lastExpr = '';
 let currentExpr = expression.textContent;
 let isDownLocked = true;
 let isUpLocked = true;
-
+let parentheseBalance = 0;
 
 const add = (a, b) => a + b;
 const subtract = (a, b) => a - b;
@@ -52,40 +53,40 @@ const getPriorityOp = expr => {
   let endIndex = expr.length;
   let opIndex = 0;
 
-  // Starts with innermost parentheses if any
+  // Go in innermost parentheses if there are any
   if (hasParentheses(expr)) {
-    endIndex = expr.indexOf(')') + 1;
-    startIndex = expr.slice(0, endIndex).lastIndexOf('(');
-
-    // Otherwise apply PEMDAS
-  } else {
-    let leftOffset = 0;
-    let rightOffset = 0;
-    if (expr.indexOf('^') !== -1) {
-      opIndex = expr.indexOf('^');
-    } else if (expr.indexOf('×') !== -1) {
-      opIndex = expr.indexOf('×');
-    } else if (expr.indexOf('÷') !== -1) {
-      opIndex = expr.indexOf('÷');
-    } else if (expr.indexOf('%') !== -1) {
-      opIndex = expr.indexOf('%');
-    } else if (expr.indexOf('−') !== -1) {
-      opIndex = expr.indexOf('−');
-    } else if (expr.indexOf('+') !== -1) {
-      opIndex = expr.indexOf('+');
-    }
-
-    // Gets the 2 operands left and right of the operator
-    leftOffset = [...expr.slice(0, opIndex)]
-                     .reverse().join('')
-                     .search(/-?[^0-9.-]/);
-    if (leftOffset < 0) leftOffset = expr.slice(0, opIndex).length;
-    startIndex = opIndex - leftOffset;
-
-    rightOffset = expr.slice(opIndex + 1).search(/[^0-9.-]/);
-    if (rightOffset < 0) rightOffset = expr.length - 1;
-    endIndex = opIndex + rightOffset;
+    if (numberRegex.test(expr)) return expr.match(/\(-?\d*\.?\d*\)/)[0];
+    let end = expr.indexOf(')');
+    let start = expr.slice(0, end).lastIndexOf('(');
+    expr = expr.slice(start + 1, end)
   }
+  let leftOffset = 0;
+  let rightOffset = 0;
+  if (expr.indexOf('^') !== -1) {
+    opIndex = expr.indexOf('^');
+  } else if (expr.indexOf('×') !== -1) {
+    opIndex = expr.indexOf('×');
+  } else if (expr.indexOf('÷') !== -1) {
+    opIndex = expr.indexOf('÷');
+  } else if (expr.indexOf('%') !== -1) {
+    opIndex = expr.indexOf('%');
+  } else if (expr.indexOf('−') !== -1) {
+    opIndex = expr.indexOf('−');
+  } else if (expr.indexOf('+') !== -1) {
+    opIndex = expr.indexOf('+');
+  }
+
+  // Gets the 2 operands left and right of the operator
+  leftOffset = [...expr.slice(0, opIndex)]
+                    .reverse().join('')
+                    .search(/-?[^0-9.-]/);
+  if (leftOffset < 0) leftOffset = expr.slice(0, opIndex).length;
+  startIndex = opIndex - leftOffset;
+
+  rightOffset = expr.slice(opIndex + 1).search(/[^0-9.-]/);
+  if (rightOffset < 0) rightOffset = expr.length - 1;
+  endIndex = opIndex + rightOffset;
+  
   if (isOperator(expr.slice(startIndex, endIndex + 1).slice(-1)))
     return expr.slice(startIndex, endIndex);
   else
@@ -105,22 +106,16 @@ const calculateExpression = expr => {
   return +expr;
 };
 
-const hasGoodParentheses = expr => {
-  if (!hasParentheses(expr)) return true;
+const countParentheses = expr => {
   return [...expr].reduce((parentheseBalance, char) => {
-    if (char === '(') {
-      ++parentheseBalance;
-    } else if (char === ')') {
-      --parentheseBalance;
-    }
-    if (parentheseBalance < 0) {
-      parentheseBalance += Infinity;
-    }
+    if (char === '(') ++parentheseBalance;
+    else if (char === ')') --parentheseBalance;
     return parentheseBalance;
-  }, 0) === 0;
-};
+  }, 0);
+}
 
 const isOperator = c => /[+−×÷^%]/.test(c);
+const hasOperator = expr => /[+−×÷^%]/.test(expr);
 
 // Checks if the last term in the expression is a float
 const hasFloatPoint = expr => {
@@ -184,63 +179,69 @@ const getLastOperand = expr => {
 };
 
 const updateExpr = (expr, button) => {
+  expr.textContent = expr.textContent.trim();
+  let lastChar = expr.textContent.slice(-1);
   if (button.id === 'clear') {
-    expr.textContent = '　';
-    lastExpr = '　';
-    currentExpr = '　';
-    exprBuffer = '　';
+    expr.textContent = '';
+    lastExpr = '';
+    currentExpr = '';
+    exprBuffer = '';
     result.textContent = 0;
+    parentheseBalance = 0;
   } else if (button.id === 'backspace') {
-    expr.textContent = expr.textContent.slice(0, -1);
-    if (expr.textContent === '') {
-      expr.textContent = '　';
+    if (lastChar === '(') {
+      parentheseBalance--;
+    } else if (lastChar === ')') {
+      parentheseBalance++;
     }
+    expr.textContent = expr.textContent.slice(0, -1);
   } else if (button.id === 'equals') {
     lastExpr = expr.textContent;
     isUpLocked = false;
-    if (!hasGoodParentheses(expr.textContent)) {
+    if (parentheseBalance !== 0) {
       result.textContent = parentheseErr;
     } else {
-      result.textContent = calculateExpression(expr.textContent.trim());
+      result.textContent = calculateExpression(expr.textContent);
     }
-    expr.textContent = '　';
+    expr.textContent = '';
+    parentheseBalance = 0;
   } else if (button.classList.contains('operator')) {
-    if (expr.textContent === '　') return;
-    if (expr.textContent.slice(-1) === '.') return;
-    if (isOperator(expr.textContent.slice(-1))) {
+    if (isOperator(lastChar)) {
       expr.textContent = expr.textContent.slice(0, -1);
     }
-    expr.textContent += button.textContent;
-  } else if (button.id === 'floatingPoint') {
-    if (expr.textContent === '　') {
+    if (expr.textContent !== '' && lastChar !== '.' && lastChar !== '(') {
       expr.textContent += button.textContent;
-    } else if (!hasFloatPoint(expr.textContent.trim())) {
+    }
+  } else if (button.id === 'floatingPoint') {
+    if (expr.textContent === '') {
+      expr.textContent += button.textContent;
+    } else if (!hasFloatPoint(expr.textContent)) {
       expr.textContent += button.textContent;
     }
   } else if (button.classList.contains('parenthese')) {
     if (expr.textContent.slice(-1) === '.') return;
     if (button.id === 'openParenthese') {
-      if (!isOperator(expr.textContent.slice(-1)) &&
-          expr.textContent.slice(-1) !== '-' &&
-          expr.textContent !== '　') return;
+      if (isOperator(lastChar) ||
+          lastChar === '-' ||
+          lastChar === '(' ||
+          expr.textContent === '') {
+            expr.textContent += button.textContent;
+            parentheseBalance++;
+      }
     }
     if (button.id === 'closeParenthese') {
-      if (expr.textContent.search(/[0-9]/) === -1) return;
+      if (parentheseBalance >= 1 &&
+          (/\d/.test(lastChar) || lastChar === ')')) { 
+            expr.textContent += button.textContent;
+            parentheseBalance--;
+      }
     } 
-    expr.textContent += button.textContent;
   } else if (button.id === 'sign') {
-    expr.textContent = changeLastOperandSign(expr.textContent.trim());
-    if (expr.textContent === '') {
-      expr.textContent = '　';
-    }
+    expr.textContent = changeLastOperandSign(expr.textContent);
   } else if (/\d/.test(button.textContent)) {
     expr.textContent = trimZeros(expr.textContent, button.textContent);
-  } else {
-    if (expr.textContent === '　') {
-      expr.textContent = '';
-    }
-    expr.textContent += button.textContent;
   }
+  // For display purposes I can't have an empty expression
   if (expr.textContent === '') {
     expr.textContent = '　';
   }
@@ -262,7 +263,6 @@ window.addEventListener('keydown', e => {
   } else if (/Enter/i.test(String(e.key))) {
     const enter = document.querySelector('#equals');
     updateExpr(expression, enter);
-    expression.textContent = '　';
   } else if (String(e.key) === 's') {
     const sign = document.querySelector('#sign');
     updateExpr(expression, sign);
@@ -281,11 +281,13 @@ window.addEventListener('keydown', e => {
     expression.textContent = lastExpr;
     isUpLocked = true;
     isDownLocked = false;
+    parentheseBalance = countParentheses(expression.textContent);
   } else if (/ArrowDown/i.test(String(e.key))) {
     if (isDownLocked) return;
     expression.textContent = currentExpr;
     isDownLocked = true;
     isUpLocked = false;
+    parentheseBalance = countParentheses(expression.textContent);
   } else {
     [...buttons.children].forEach(button => {
       if (String(e.key) === button.textContent) {
