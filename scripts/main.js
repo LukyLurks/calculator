@@ -270,24 +270,31 @@ buttons.addEventListener('click', e => {
 window.addEventListener('keydown', e => {
   if (/Escape/i.test(String(e.key))) {
     const esc = document.querySelector('#clear');
+    esc.classList.add('active');
     updateExpr(expression, esc);
   } else if (/Backspace/i.test(String(e.key))) {
     const back = document.querySelector('#backspace');
+    back.classList.add('active');
     updateExpr(expression, back);
   } else if (/Enter/i.test(String(e.key))) {
     const enter = document.querySelector('#equals');
+    enter.classList.add('active');
     updateExpr(expression, enter);
   } else if (String(e.key) === 's') {
     const sign = document.querySelector('#sign');
+    sign.classList.add('active');
     updateExpr(expression, sign);
   } else if (String(e.key) === '-') {
     const minus = document.querySelector('#subtract');
+    minus.classList.add('active');
     updateExpr(expression, minus);
   } else if (String(e.key) === '*') {
     const mult = document.querySelector('#multiply');
+    mult.classList.add('active');
     updateExpr(expression, mult);
   } else if (String(e.key) === '/') {
     const divi = document.querySelector('#divide');
+    divi.classList.add('active');
     updateExpr(expression, divi);
   } else if (/ArrowUp/i.test(String(e.key))) {
     if (lastExpr === '' || isUpLocked) return;
@@ -305,8 +312,16 @@ window.addEventListener('keydown', e => {
   } else {
     [...buttons.children].forEach(button => {
       if (String(e.key) === button.textContent) {
+        button.classList.add('active');
         updateExpr(expression, button);
       }
     });
   }
+});
+
+[...buttons.children].forEach(button => {
+  button.addEventListener('transitionend', e => {
+    if (e.propertyName !== 'outline-width') return;
+    e.target.classList.remove('active');
+  });
 });
