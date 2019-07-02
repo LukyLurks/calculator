@@ -140,10 +140,11 @@ const backspace = (expr, lastChar) => {
   expr.textContent = expr.textContent.slice(0, -1);
 };
 
-const updateResult = expr => {
+const updateResult = (expr, lastChar) => {
   lastExpr = expr.textContent;
+  text = expr.textContent;
   isUpLocked = false;
-  if (parentheseBalance !== 0 || lastExpr === '.' || lastExpr === '-') {
+  if (parentheseBalance !== 0 || /[.-]/.test(text) || isOperator(lastChar)) {
     result.textContent = syntaxErr;
   } else {
     result.textContent = calculateExpression(expr.textContent);
@@ -242,7 +243,7 @@ const updateExpr = (expr, button) => {
   } else if (button.id === 'backspace') {
     backspace(expr, lastChar);
   } else if (button.id === 'equals') {
-    updateResult(expr);
+    updateResult(expr, lastChar);
   } else if (button.classList.contains('operator')) {
     appendOperator(expr, button, lastChar);
   } else if (button.id === 'floatingPoint') {
