@@ -2,9 +2,9 @@ const expression = document.querySelector('#expression');
 const result = document.querySelector('#result');
 const buttons = document.querySelector('#buttons');
 
-const parentheseErr = 'ERROR: parentheses mismatch';
-const divideZeroErr = 'ERROR: divided by 0';
-const genericErr = 'ERROR: unexpected error';
+const syntaxErr = 'SYNTAX ERROR';
+const mathErr = 'MATH ERROR';
+const genericErr = 'ERROR';
 const enclosedNumber = /\(-?\d*\.?\d*\)/;
 const number = /[^+–×÷^%()]-?\d*\.?\d*/;
 const numbers = /[^+–×÷^%()]-?\d*\.?\d*/g;
@@ -89,7 +89,7 @@ const calculateExpression = expr => {
     let priorityOp = getPriorityOp(expr);
     let resultPriorityOp = operate(...parseSimpleExpr(priorityOp));
     if (resultPriorityOp === Infinity) {
-      return divideZeroErr;
+      return mathErr;
     }
     expr = expr.replace(priorityOp, resultPriorityOp);
   }
@@ -143,8 +143,8 @@ const backspace = (expr, lastChar) => {
 const updateResult = expr => {
   lastExpr = expr.textContent;
   isUpLocked = false;
-  if (parentheseBalance !== 0) {
-    result.textContent = parentheseErr;
+  if (parentheseBalance !== 0 || lastExpr === '.' || lastExpr === '-') {
+    result.textContent = syntaxErr;
   } else {
     result.textContent = calculateExpression(expr.textContent);
   }
