@@ -142,9 +142,10 @@ const backspace = (expr, lastChar) => {
 
 const updateResult = (expr, lastChar) => {
   lastExpr = expr.textContent;
-  text = expr.textContent;
+  let text = expr.textContent;
+  let p = parentheseBalance;
   isUpLocked = false;
-  if (parentheseBalance !== 0 || /[.-]/.test(text) || isOperator(lastChar)) {
+  if (p !== 0 || text === '.' || text === '-' || isOperator(lastChar)) {
     result.textContent = syntaxErr;
   } else {
     result.textContent = calculateExpression(expr.textContent);
