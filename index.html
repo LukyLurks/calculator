@@ -20,7 +20,7 @@
         </div>
 
         <div id="buttons">
-          <button id="clear" title="Clear all (ESC)">AC</button>
+          <button id="clear" title="Clear all (ESC)">C</button>
           <button id="backspace" title="Backspace">←</button>
           <button id="divide" class="operator">÷</button>
           <button id="sign" title="Change sign (S)">±</button>
@@ -48,6 +48,70 @@
           <button id="closeParenthese" class="parenthese">)</button>
           <button id="floatingPoint">.</button>
         </div>
+      </div>
+
+      <div class="container">
+        <p id="help">
+          <table>
+            <thead>
+              <tr>
+                <th colspan="2">SPECIAL KEYS</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>ESC</td>
+                <td><span class="operator">C</span></td>
+              </tr>
+              <tr>
+                <td>S</td>
+                <td><span class="operator">±</span></td>
+              </tr>
+              <tr>
+                <td>ENTER</td>
+                <td><span class="operator">=</span></td>
+              </tr>
+              <tr>
+                <td>↑</td>
+                <td>Last expression</td>
+              </tr>
+              <tr>
+                <td>↓</td>
+                <td>Current expression</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <table>
+            <thead>
+              <tr>
+                <th colspan="2">NON-OBVIOUS FUNCTIONS</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="operator">^</span></td>
+                <td>Exponent: 5^3 = 5×5×5</td>
+              </tr>
+              <tr>
+                <td><span class="operator">%</span></td>
+                <td>Percentage: 50%3 = 1.5</td>
+              </tr>
+              <tr>
+                <td><span class="operator">±</span></td>
+                <td>Sign of last term</td>
+              </tr>
+              <tr>
+                <td><span class="operator">←</span></td>
+                <td>Erase last character</td>
+              </tr>
+              <tr>
+                <td><span class="operator">C</span></td>
+                <td>Full reset</td>
+              </tr>
+            </tbody>
+          </table>
+        </p>
       </div>
     </div>
 
