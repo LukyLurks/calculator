@@ -147,6 +147,7 @@ const updateResult = (expr, lastChar) => {
   if (parentheseBalance !== 0 ||
       getLastOperand(text) === '.' ||
       getLastOperand(text) === '-' ||
+      getLastOperand(text) === '-.' ||
       isOperator(lastChar)) {
     result.textContent = syntaxErr;
   } else {
