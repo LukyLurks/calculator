@@ -6,8 +6,8 @@ const parentheseErr = 'ERROR: parentheses mismatch';
 const divideZeroErr = 'ERROR: divided by 0';
 const genericErr = 'ERROR: unexpected error';
 const enclosedNumber = /\(-?\d*\.?\d*\)/;
-const number = /[^+−×÷^%()]-?\d*\.?\d*/;
-const numbers = /[^+−×÷^%()]-?\d*\.?\d*/g;
+const number = /[^+–×÷^%()]-?\d*\.?\d*/;
+const numbers = /[^+–×÷^%()]-?\d*\.?\d*/g;
 
 // Last computed expression
 let lastExpr = '';
@@ -29,7 +29,7 @@ const percent = (a, b) => b / 100 * a;
 
 const operate = (operand1, operand2, operator) => {
   if (operator === '+') return add(operand1, operand2);
-  else if (operator === '−') return subtract(operand1, operand2);
+  else if (operator === '–') return subtract(operand1, operand2);
   else if (operator === '×') return multiply(operand1, operand2);
   else if (operator === '÷') return divide(operand1, operand2);
   else if (operator === '^') return pow(operand1, operand2);
@@ -75,7 +75,7 @@ const getPriorityOp = expr => {
   else if (expr.indexOf('×') !== -1) opIndex = expr.indexOf('×');
   else if (expr.indexOf('÷') !== -1) opIndex = expr.indexOf('÷');
   else if (expr.indexOf('%') !== -1) opIndex = expr.indexOf('%');
-  else if (expr.indexOf('−') !== -1) opIndex = expr.indexOf('−');
+  else if (expr.indexOf('–') !== -1) opIndex = expr.indexOf('–');
   else if (expr.indexOf('+') !== -1) opIndex = expr.indexOf('+');
 
   let leftOperand = getLastOperand(expr.slice(0, opIndex));
@@ -107,7 +107,7 @@ const countParentheses = expr => {
   }, 0);
 }
 
-const isOperator = c => /[+−×÷^%]/.test(c);
+const isOperator = c => /[+–×÷^%]/.test(c);
 
 const isNumberFloat = operand => /\./.test(operand);
 

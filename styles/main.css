@@ -1,48 +1,49 @@
 body, html {
-  font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
-}
-
-h1 {
-  font-size: 2.25rem;
-  font-weight: 300;
-  letter-spacing: 0.4px;
-  color: rgb(204, 149, 67);
+  font-family: arcade, "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  display: grid;
+  height: 100%;
+  background: linear-gradient(0deg, rgba(0,5,130,1) 0%, rgba(0,0,150,1) 35%, rgba(0,11,170,1) 100%);
+  color: white;
 }
 
 .container {
-  text-align: center;
   margin: auto;
+  width: 100%;
 }
 
 #calculator {
-  border: 3px solid black;
-  padding: 0.5em;
-  margin: 0.5em auto;
+  border: 4px ridge rgb(186, 191, 255);
+  border-radius: 3px;
+  padding: .5em;
   width: 50%;
+  margin: auto;
 }
 
-#calculator > * {
-  margin:.25em;
-}
-
-#calculatorScreen {
+#display {
   text-align: right;
-  border: 1px solid black;
-  padding: 0.5em;
+  border: 1px ridge rgb(186, 191, 255);
+  border-radius: 3px;
+  margin-bottom: .25em;
+  font-size: 1.5em;
+  color: white;
+  padding: .2em;
 }
 
 #expression {
-  color: rgba(0, 0, 0, 0.5);
+  opacity: .8;
+  padding: .15em;
 }
 
 #result {
   text-align: end;
+  padding: .15em;
 }
 
 #buttons {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   grid-template-rows: repeat(5, 1fr);
+  grid-gap: 1px;
 }
 
 #divide {
@@ -54,6 +55,25 @@ h1 {
   grid-row: 4 / 6;
 }
 
-#buttons > button {
+button {
   display: inline-block;
+  font-family: arcade;
+  font-size: 1.25em;
+  color: white;
+  padding: .5em;
+  /* background: linear-gradient(0deg, rgba(191,191,191,1) 0%, rgba(207,207,207,1) 35%, rgba(223,223,223,1) 100%); */
+  background: linear-gradient(0deg, rgba(0,7,174,1) 0%, rgba(0,0,190,1) 75%, rgba(0,12,210,1) 100%);
+  outline: 1px solid rgb(105, 115, 255);
+  border: none;
+}
+
+#equals, #sign, #clear, #backspace, .operator {
+  color: rgb(206, 151, 62);
+  background: linear-gradient(0deg, rgba(3,4,190,1) 0%, rgba(4,4,211,1) 35%, rgba(4,4,230,1) 100%);
+  font-weight: bold;
+}
+
+@font-face {
+  font-family: arcade;
+  src: url("press-start-2p/PressStart2P-Regular.ttf") format("woff");
 }
