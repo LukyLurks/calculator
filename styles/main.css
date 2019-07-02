@@ -2,7 +2,7 @@ body, html {
   font-family: arcade;
   display: grid;
   height: 100%;
-  background: linear-gradient(0deg, rgba(0,5,130,1) 0%, rgba(0,0,150,1) 35%, rgba(0,11,170,1) 100%);
+  background: linear-gradient(0deg, rgb(1, 5, 121) 0%, rgb(0, 0, 136) 35%, rgb(0, 11, 161) 100%);
   color: white;
   line-height: 125%;
 }
@@ -79,7 +79,7 @@ button {
   font-size: 1.25em;
   color: white;
   padding: .5em;
-  background: linear-gradient(0deg, rgba(0,7,174,1) 0%, rgba(0,0,190,1) 75%, rgba(0,12,210,1) 100%);
+  background: linear-gradient(0deg, rgb(0, 5, 144) 0%, rgb(0, 0, 165) 75%, rgb(0, 9, 179) 100%);
   outline: 1px solid rgb(105, 115, 255);
   border: none;
   transition: all .1s ease;
@@ -98,7 +98,7 @@ button:active, .active {
 
 #equals, #sign, #clear, #backspace, .operator {
   color: rgb(206, 151, 62);
-  background: linear-gradient(0deg, rgba(3,4,190,.8) 0%, rgba(4,4,211,.8) 35%, rgba(4,4,230,.8) 100%);
+  background: linear-gradient(0deg, rgba(3, 3, 160, 0.8) 0%, rgba(3, 3, 173, 0.8) 35%, rgba(3, 3, 196, 0.8) 100%);
   font-weight: bold;
 }
 
