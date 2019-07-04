@@ -317,6 +317,7 @@ window.addEventListener('keydown', e => {
     mult.classList.add('active');
     updateExpr(expression, mult);
   } else if (key === '/') {
+    e.preventDefault();
     const divi = document.querySelector('#divide');
     divi.classList.add('active');
     updateExpr(expression, divi);
