@@ -170,7 +170,8 @@ const appendFloatPoint = (expr, button, lastChar) => {
   let lastOperand = getLastOperand(expr.textContent);
   if (expr.textContent === '') {
     expr.textContent += button.textContent;
-  } else if (!isNumberFloat(lastOperand) && lastChar !== ')') {
+  } else if ((!isNumberFloat(lastOperand) && lastChar !== ')') ||
+              isOperator(lastChar)) {
     expr.textContent += button.textContent;
   }
 };
@@ -203,7 +204,7 @@ const appendDigits = (expr, digit, lastChar) => {
         // Can't use replace("lastOperand", `${digit}`), if there's more
         // than 1 occurence of lastOperand ; only the first would be replaced.
         let index = expr.textContent.lastIndexOf(lastOperand);
-        let start = expr.textContent.slice(0, zeroIndex);
+        let start = expr.textContent.slice(0, index);
         expr.textContent = start + `${digit}${expr.textContent.slice(index)}`;
       } else if (lastChar !== ')') {
         expr.textContent += digit;
@@ -265,55 +266,76 @@ const updateExpr = (expr, button) => {
   }
 }
 
+const helpToggle = document.querySelector('#helpToggle');
+const help = document.querySelector('#help');
+const toggleHelp = () => {
+  if (help.classList.contains('hidden')) {
+    help.classList.remove('hidden');
+  } else {
+    help.classList.add('hidden');
+  }
+};
+
+helpToggle.addEventListener('click', toggleHelp);
+
 buttons.addEventListener('click', e => {
   if (e.target.tagName.toLowerCase() === 'button') {
     updateExpr(expression, e.target);
   }
+  /** When clicking buttons with the mouse then pressing Enter, it will 
+   * trigger the equals button and also input the last clicked character, 
+   * because it will have focus. The following prevents this.
+   */
+  document.activeElement = null;
 });
 
 // Support for keyboard input
 window.addEventListener('keydown', e => {
-  if (/Escape/i.test(String(e.key))) {
+  let key = String(e.key).toLowerCase();
+  if (key === 'escape' || key === 'c') {
     const esc = document.querySelector('#clear');
     esc.classList.add('active');
     updateExpr(expression, esc);
-  } else if (/Backspace/i.test(String(e.key))) {
+  } else if (key === 'backspace') {
     const back = document.querySelector('#backspace');
     back.classList.add('active');
     updateExpr(expression, back);
-  } else if (/Enter/i.test(String(e.key))) {
+  } else if (key === 'enter') {
     const enter = document.querySelector('#equals');
     enter.classList.add('active');
     updateExpr(expression, enter);
-  } else if (String(e.key) === 's') {
+  } else if (key === 's') {
     const sign = document.querySelector('#sign');
     sign.classList.add('active');
     updateExpr(expression, sign);
-  } else if (String(e.key) === '-') {
+  } else if (key === '-') {
     const minus = document.querySelector('#subtract');
     minus.classList.add('active');
     updateExpr(expression, minus);
-  } else if (String(e.key) === '*') {
+  } else if (key === '*') {
     const mult = document.querySelector('#multiply');
     mult.classList.add('active');
     updateExpr(expression, mult);
-  } else if (String(e.key) === '/') {
+  } else if (key === '/') {
     const divi = document.querySelector('#divide');
     divi.classList.add('active');
     updateExpr(expression, divi);
-  } else if (/ArrowUp/i.test(String(e.key))) {
+  } else if (key === 'arrowup') {
     if (lastExpr === '' || isUpLocked) return;
     currentExpr = expression.textContent;
     expression.textContent = lastExpr;
     isUpLocked = true;
     isDownLocked = false;
     parentheseBalance = countParentheses(expression.textContent);
-  } else if (/ArrowDown/i.test(String(e.key))) {
+  } else if (key === 'arrowdown') {
     if (isDownLocked) return;
     expression.textContent = currentExpr;
     isDownLocked = true;
     isUpLocked = false;
     parentheseBalance = countParentheses(expression.textContent);
+  } else if (key === 'h') {
+    console.log(String(e.key));
+    toggleHelp();
   } else {
     [...buttons.children].forEach(button => {
       if (String(e.key) === button.textContent) {
@@ -330,3 +352,4 @@ window.addEventListener('keydown', e => {
     e.target.classList.remove('active');
   });
 });
+
