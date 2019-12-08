@@ -1,9 +1,9 @@
 html, body {
-  font-family: arcade;
+  font-family: "Open Sans";
+  font-size: 1.1em;
   text-align: center;
   background-color: rgb(0, 0, 116);
   color: white;
-  line-height: 125%;
 }
 
 table {
@@ -64,7 +64,7 @@ th, td {
 
 button, #helpToggle {
   display: inline-block;
-  font-family: arcade;
+  font-family: "Open Sans";
   font-size: 1.1em;
   color: white;
   padding: .4em;
@@ -110,9 +110,4 @@ button:active, .active {
 .hidden {
   display: none;
   opacity: 0; 
-}
-
-@font-face {
-  font-family: arcade;
-  src: url("press-start-2p/PressStart2P-Regular.ttf") format("woff");
 }
