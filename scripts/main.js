@@ -5,8 +5,12 @@ const buttons = document.querySelector('#buttons');
 const syntaxErr = 'SYNTAX ERROR';
 const mathErr = 'MATH ERROR';
 const genericErr = 'ERROR';
+// Matches parenthesed numbers: (5), (-2.4), (.482), but not (3+5) for instance 
 const enclosedNumber = /\(-?\d*\.?\d*\)/;
+// Matches numbers like 3, -2.42, 92875, .889, 0.27
 const number = /[^+–×÷^%()]-?\d*\.?\d*/;
+// Matches all numbers like 3, -2.42, 92875, .889, 0.27 from the expression we
+// check against: "32.4+68−.6".match(numbers) -> ["32.4", "68", ".6"]
 const numbers = /[^+–×÷^%()]-?\d*\.?\d*/g;
 
 // Last computed expression
@@ -27,8 +31,8 @@ const divide = (a, b) => a / b;
 const pow = (x, n) => x ** n;
 const percent = (a, b) => b / 100 * a;
 
-const operate = (operand1, operand2, operator) => {
-  if (operator === '+') return add(operand1, operand2);
+function operate (operand1, operand2, operator) {
+  if      (operator === '+') return add(operand1, operand2);
   else if (operator === '–') return subtract(operand1, operand2);
   else if (operator === '×') return multiply(operand1, operand2);
   else if (operator === '÷') return divide(operand1, operand2);
@@ -38,11 +42,11 @@ const operate = (operand1, operand2, operator) => {
     if (operand1) return operand1;
   }
   else return genericErr;
-};
+}
 
 const hasParentheses = expr => /[()]/.test(expr);
 
-const parseSimpleExpr = expr => {
+function parseSimpleExpr(expr) {
   if (hasParentheses(expr)) {
     expr = expr.slice(1, -1);
   }
@@ -52,10 +56,10 @@ const parseSimpleExpr = expr => {
   let operand2 = +expr.slice(opIndex + 1);
   let operator = expr.charAt(opIndex);
   return [operand1, operand2, operator];
-};
+}
 
 // Get the substring containing the operation with highest precedence
-const getPriorityOp = expr => {
+function getPriorityOp(expr) {
   if (hasParentheses(expr)) {
     if (enclosedNumber.test(expr)) {
       /** If there is an expression enclosed in parentheses, we simplify
@@ -63,7 +67,7 @@ const getPriorityOp = expr => {
        * WITH its parentheses so that everything is simplified/replaced in
        * the expression.
        */
-      return expr.match(enclosedNumber)[0];
+      return String(expr.match(enclosedNumber));
     }
     let end = expr.indexOf(')');
     let start = expr.slice(0, end).lastIndexOf('(');
@@ -71,20 +75,20 @@ const getPriorityOp = expr => {
   }
 
   let opIndex = 0;
-  if (expr.indexOf('^') !== -1) opIndex = expr.indexOf('^');
-  else if (expr.indexOf('×') !== -1) opIndex = expr.indexOf('×');
-  else if (expr.indexOf('÷') !== -1) opIndex = expr.indexOf('÷');
-  else if (expr.indexOf('%') !== -1) opIndex = expr.indexOf('%');
-  else if (expr.indexOf('–') !== -1) opIndex = expr.indexOf('–');
-  else if (expr.indexOf('+') !== -1) opIndex = expr.indexOf('+');
+  if (expr.includes('^')) opIndex = expr.indexOf('^');
+  else if (expr.includes('×')) opIndex = expr.indexOf('×');
+  else if (expr.includes('÷')) opIndex = expr.indexOf('÷');
+  else if (expr.includes('%')) opIndex = expr.indexOf('%');
+  else if (expr.includes('–')) opIndex = expr.indexOf('–');
+  else if (expr.includes('+')) opIndex = expr.indexOf('+');
 
   let leftOperand = getLastOperand(expr.slice(0, opIndex));
   let rightOperand = expr.slice(opIndex + 1).match(number);
   return leftOperand + expr.charAt(opIndex) + rightOperand;
-};
+}
 
 // Simplifies the expression string until it's a number
-const calculateExpression = expr => {
+function calculateExpression(expr) {
   while(Number.isNaN(+expr)) {
     let priorityOp = getPriorityOp(expr);
     let resultPriorityOp = operate(...parseSimpleExpr(priorityOp));
@@ -94,12 +98,12 @@ const calculateExpression = expr => {
     expr = expr.replace(priorityOp, resultPriorityOp);
   }
   return +expr;
-};
+}
 
 /** Although the parentheses are counted as the expression is being written,
  * We need to update the count when switching between current/old expression.
  */
-const countParentheses = expr => {
+function countParentheses (expr) {
   return [...expr].reduce((parentheseBalance, char) => {
     if (char === '(') ++parentheseBalance;
     else if (char === ')') --parentheseBalance;
@@ -111,16 +115,16 @@ const isOperator = c => /[+–×÷^%]/.test(c);
 
 const isNumberFloat = operand => /\./.test(operand);
 
-const getLastOperand = expr => {
+function getLastOperand (expr) {
   let operands = expr.match(numbers);
   if (operands) {
     return operands[operands.length - 1];
   } else {
     return null;
   }
-};
+}
 
-const resetCalculator = () => {
+function resetCalculator() {
   expression.textContent = '';
   lastExpr = '';
   currentExpr = '';
@@ -129,18 +133,18 @@ const resetCalculator = () => {
   parentheseBalance = 0;
   isUpLocked = true;
   isDownLocked = true;
-};
+}
 
-const backspace = (expr, lastChar) => {
+function backspace (expr, lastChar) {
   if (lastChar === '(') {
     parentheseBalance--;
   } else if (lastChar === ')') {
     parentheseBalance++;
   }
   expr.textContent = expr.textContent.slice(0, -1);
-};
+}
 
-const updateResult = (expr, lastChar) => {
+function updateResult (expr, lastChar) {
   lastExpr = expr.textContent;
   let text = expr.textContent;
   isUpLocked = false;
@@ -155,18 +159,18 @@ const updateResult = (expr, lastChar) => {
   }
   expr.textContent = '';
   parentheseBalance = 0;
-};
+}
 
-const appendOperator = (expr, button, lastChar) => {
+function appendOperator (expr, button, lastChar) {
   if (isOperator(lastChar)) {
     expr.textContent = expr.textContent.slice(0, -1);
   }
   if (expr.textContent !== '' && lastChar !== '.' && lastChar !== '(') {
     expr.textContent += button.textContent;
   }
-};
+}
 
-const appendFloatPoint = (expr, button, lastChar) => {
+function appendFloatPoint(expr, button, lastChar) {
   let lastOperand = getLastOperand(expr.textContent);
   if (expr.textContent === '') {
     expr.textContent += button.textContent;
@@ -174,9 +178,9 @@ const appendFloatPoint = (expr, button, lastChar) => {
               isOperator(lastChar)) {
     expr.textContent += button.textContent;
   }
-};
+}
 
-const appendParenthese = (expr, button, lastChar) => {
+function appendParenthese (expr, button, lastChar) {
   if (expr.textContent.slice(-1) === '.') return;
   if (button.id === 'openParenthese') {
     if (isOperator(lastChar) || lastChar === '-' || lastChar === '(' ||
@@ -191,9 +195,9 @@ const appendParenthese = (expr, button, lastChar) => {
           parentheseBalance--;
     }
   }
-};
+}
 
-const appendDigits = (expr, digit, lastChar) => {
+function appendDigits(expr, digit, lastChar) {
   let lastOperand = getLastOperand(expr.textContent);
   if (!lastOperand) {
     expr.textContent += digit;
@@ -216,9 +220,9 @@ const appendDigits = (expr, digit, lastChar) => {
       }
     }
   }
-};
+}
 
-const changeLastOperandSign = (expr, lastChar) => {
+function changeLastOperandSign(expr, lastChar) {
   let lastOperand = getLastOperand(expr.textContent);
   if (!lastOperand) {
     if (lastChar === '-') {
@@ -237,9 +241,9 @@ const changeLastOperandSign = (expr, lastChar) => {
       expr.textContent = exprStart + `-${expr.textContent.slice(signIndex)}`;
     }
   }
-};
+}
 
-const updateExpr = (expr, button) => {
+function updateExpr(expr, button) {
   expr.textContent = expr.textContent.trim();
   let lastChar = expr.textContent.slice(-1);
 
@@ -268,28 +272,28 @@ const updateExpr = (expr, button) => {
 
 const helpToggle = document.querySelector('#helpToggle');
 const help = document.querySelector('#help');
-const toggleHelp = () => {
+function toggleHelp() {
   if (help.classList.contains('hidden')) {
     help.classList.remove('hidden');
   } else {
     help.classList.add('hidden');
   }
-};
+}
 
 helpToggle.addEventListener('click', toggleHelp);
 
 buttons.addEventListener('click', e => {
   if (e.target.tagName.toLowerCase() === 'button') {
     updateExpr(expression, e.target);
+    /** When clicking buttons with the mouse, they gain focus.
+     * If we press Enter to calculate, it will also immediately input
+     * that focused button afterwards. We manually lose the focus with this.
+     **/
+    e.target.blur();
   }
-  /** When clicking buttons with the mouse then pressing Enter, it will 
-   * trigger the equals button and also input the last clicked character, 
-   * because it will have focus. The following prevents this.
-   */
-  document.activeElement = null;
 });
 
-// Support for keyboard input
+// Keyboard mappings
 window.addEventListener('keydown', e => {
   let key = String(e.key).toLowerCase();
   if (key === 'escape' || key === 'c') {
@@ -335,7 +339,6 @@ window.addEventListener('keydown', e => {
     isUpLocked = false;
     parentheseBalance = countParentheses(expression.textContent);
   } else if (key === 'h') {
-    console.log(String(e.key));
     toggleHelp();
   } else {
     [...buttons.children].forEach(button => {
