@@ -1,9 +1,13 @@
 html, body {
-  font-family: "Open Sans";
+  font-family: "Open Sans", sans-serif;
   font-size: 1.1em;
   text-align: center;
   background-color: rgb(0, 0, 116);
   color: white;
+	height: 100vh;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-around;
 }
 
 table {
@@ -64,7 +68,7 @@ th, td {
 
 button, #helpToggle {
   display: inline-block;
-  font-family: "Open Sans";
+  font-family: "Open Sans", sans-serif;
   font-size: 1.1em;
   color: white;
   padding: .4em;
@@ -73,6 +77,10 @@ button, #helpToggle {
   border: none;
   transition: all .1s ease;
   cursor: default;
+}
+
+#helpToggle {
+	margin: 1em auto;
 }
 
 button:hover, #helpToggle:hover {
@@ -101,13 +109,13 @@ button:active, .active {
 }
 
 #help {
-  margin: 1em auto;
+  margin: 2em auto;
+	padding: .5em;
   transition: all .1s ease;
-  opacity: 1;
   outline: 1px solid rgba(105, 115, 255, .8);
 }
 
 .hidden {
-  display: none;
-  opacity: 0; 
+	visibility: hidden;
+	opacity: 0;
 }
