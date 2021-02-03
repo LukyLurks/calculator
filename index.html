@@ -10,110 +10,108 @@
 
   <body>
 
-    <div class="container">
-      
-      <div id="calculator">
+		<div id="calculator">
 
-        <div id="display">
-          <p id="expression">　</p>
-          <p id="result">0</p>
-        </div>
+			<div id="display">
+				<p id="expression">　</p>
+				<p id="result">0</p>
+			</div>
 
-        <div id="buttons">
-          <button id="clear" class="special">C</button>
-          <button id="backspace" class="special">←</button>
-          <button id="divide" class="special operator">÷</button>
-          <button id="sign" class="special">±</button>
+			<div id="buttons">
+				<button id="clear" class="special">C</button>
+				<button id="backspace" class="special">⌫</button>
+				<button id="divide" class="special operator">÷</button>
+				<button id="sign" class="special">±</button>
 
-          <button>7</button>
-          <button>8</button>
-          <button>9</button>
-          <button id="multiply" class="special operator">×</button>
-          <button id="pow" class="special operator">^</button>
+				<button>7</button>
+				<button>8</button>
+				<button>9</button>
+				<button id="multiply" class="special operator">×</button>
+				<button id="pow" class="special operator">^</button>
 
-          <button>4</button>
-          <button>5</button>
-          <button>6</button>
-          <button id="subtract" class="special operator">–</button>
-          <button id="percent" class="special operator">%</button>
-          
-          <button>1</button>
-          <button>2</button>
-          <button>3</button>
-          <button id="add" class="special operator">+</button>
-          <button id="equals" class="special">=</button>
+				<button>4</button>
+				<button>5</button>
+				<button>6</button>
+				<button id="subtract" class="special operator">–</button>
+				<button id="percent" class="special operator">%</button>
+				
+				<button>1</button>
+				<button>2</button>
+				<button>3</button>
+				<button id="add" class="special operator">+</button>
+				<button id="equals" class="special">=</button>
 
-          <button>0</button>
-          <button id="openParenthese" class="parenthese">(</button>
-          <button id="closeParenthese" class="parenthese">)</button>
-          <button id="floatingPoint">.</button>
-        </div>
-      </div>
+				<button>0</button>
+				<button id="openParenthese" class="parenthese">(</button>
+				<button id="closeParenthese" class="parenthese">)</button>
+				<button id="floatingPoint">.</button>
+			</div>
+		</div>
 
-      <div id="helpToggle">※ Show/Hide help (H)</div>
-      <div id="help" class="hidden">
-        <table>
-          <thead>
-            <tr>
-              <th colspan="2">KEYBOARD SHORTCUTS</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>ESC</td>
-              <td>C</td>
-            </tr>
-            <tr>
-              <td>S</td>
-              <td>±</td>
-            </tr>
-            <tr>
-              <td>ENTER</td>
-              <td>=</td>
-            </tr>
-            <tr>
-              <td>↑</td>
-              <td>Show last expression</td>
-            </tr>
-            <tr>
-              <td>↓</td>
-              <td>Show current expression after using ↑</td>
-            </tr>
-          </tbody>
-        </table>
+		<button id="helpToggle">※ Show / Hide help (H)</button>
+		<div id="help">
+			<p>Supports keyboard input</p>
+			<table>
+				<thead>
+					<tr>
+						<th colspan="2">KEYBOARD SHORTCUTS</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>ESC</td>
+						<td>C</td>
+					</tr>
+					<tr>
+						<td>S</td>
+						<td>±</td>
+					</tr>
+					<tr>
+						<td>ENTER</td>
+						<td>=</td>
+					</tr>
+					<tr>
+						<td>↑</td>
+						<td>Show previous expression</td>
+					</tr>
+					<tr>
+						<td>↓</td>
+						<td>Return to current expression</td>
+					</tr>
+				</tbody>
+			</table>
 
-        <table>
-          <thead>
-            <tr>
-              <th colspan="2">SPECIAL FUNCTIONS</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>^</td>
-              <td>Exponent: 5^3 = 5×5×5</td>
-            </tr>
-            <tr>
-              <td>%</td>
-              <td>Percentage: 50%3 = 1.5</td>
-            </tr>
-            <tr>
-              <td>±</td>
-              <td>Change sign of last term</td>
-            </tr>
-            <tr>
-              <td>←</td>
-              <td>Erase last character</td>
-            </tr>
-            <tr>
-              <td>C</td>
-              <td>Full reset</td>
-            </tr>
-          </tbody>
-        </table>
-        <p>Full keyboard support, only uncommon keys are indicated</p>
-      </div>
-    </div>
+			<table>
+				<thead>
+					<tr>
+						<th colspan="2">SPECIAL FUNCTIONS</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>^</td>
+						<td>Exponent: 5^3 = 5×5×5</td>
+					</tr>
+					<tr>
+						<td>%</td>
+						<td>Percentage: 50%3 = 1.5</td>
+					</tr>
+					<tr>
+						<td>±</td>
+						<td>Change sign of last term</td>
+					</tr>
+					<tr>
+						<td>⌫</td>
+						<td>Erase last character</td>
+					</tr>
+					<tr>
+						<td>C</td>
+						<td>Clear</td>
+					</tr>
+				</tbody>
+			</table>
+			<p>Click the button above or press 'h' to hide this table</p>
+		</div>
 
     <script src="scripts/main.js"></script>
   </body>
