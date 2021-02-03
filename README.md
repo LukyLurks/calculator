@@ -20,6 +20,8 @@ article](https://developer.mozilla.org/en-US/docs/Learn/Getting_started_with_the
 		parentheses, multiple dots in a single number, etc.
 	* calculations: the inputted expression is parsed as a string and PEMDAS is
 	  repeatedly applied until we get a number with `calculateExpression()`
+
+
 	Almost everything else is regexes or functions to deal with all the cases, so
 	looking at those 2 functions first is a good way to grasp the code.
 - [styles](./styles/): [Eric Mayer's CSS
