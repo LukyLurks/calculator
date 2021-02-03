@@ -24,12 +24,24 @@ let isUpLocked = true;
 // Can't be negative
 let parentheseBalance = 0;
 
-const add = (a, b) => a + b;
-const subtract = (a, b) => a - b;
-const multiply = (a, b) => a * b;
+const add = (a, b) => +(a + b).toPrecision(getPrecision(a, b));
+const subtract = (a, b) => +(a - b).toPrecision(getPrecision(a, b));
+const multiply = (a, b) => +(a * b).toPrecision(getPrecision(a, b));
 const divide = (a, b) => a / b;
 const pow = (x, n) => x ** n;
 const percent = (a, b) => b / 100 * a;
+
+function getPrecision(a, b) {
+	const [aStr, bStr] = [a.toString(), b.toString()]
+	let [aPrecision, bPrecision] = [1, 1];
+	if (aStr.includes('.')) {
+		aPrecision += aStr.slice(aStr.indexOf('.') + 1).length;
+	}
+	if (bStr.includes('.')) {
+		bPrecision += bStr.slice(bStr.indexOf('.') + 1).length;
+	}
+	return Math.max(aPrecision, bPrecision);
+}
 
 function operate (operand1, operand2, operator) {
   if      (operator === '+') return add(operand1, operand2);
@@ -38,9 +50,9 @@ function operate (operand1, operand2, operator) {
   else if (operator === '÷') return divide(operand1, operand2);
   else if (operator === '^') return pow(operand1, operand2);
   else if (operator === '%') return percent(operand1, operand2);
-  else if (!isOperator(operator)) {
-    if (operand1) return operand1;
-  }
+	else if (!isOperator(operator)) {
+		if (operand1) return operand1;
+	}
   else return genericErr;
 }
 
@@ -59,7 +71,7 @@ function parseSimpleExpr(expr) {
 }
 
 // Get the substring containing the operation with highest precedence
-function getPriorityOp(expr) {
+function pickNextOperation(expr) {
   if (hasParentheses(expr)) {
     if (enclosedNumber.test(expr)) {
       /** If there is an expression enclosed in parentheses, we simplify
@@ -90,12 +102,12 @@ function getPriorityOp(expr) {
 // Simplifies the expression string until it's a number
 function calculateExpression(expr) {
   while(Number.isNaN(+expr)) {
-    let priorityOp = getPriorityOp(expr);
-    let resultPriorityOp = operate(...parseSimpleExpr(priorityOp));
-    if (resultPriorityOp === Infinity) {
+    let operation = pickNextOperation(expr);
+    let result = operate(...parseSimpleExpr(operation));
+    if (result === Infinity) {
       return mathErr;
     }
-    expr = expr.replace(priorityOp, resultPriorityOp);
+    expr = expr.replace(operation, result);
   }
   return +expr;
 }
@@ -272,12 +284,9 @@ function updateExpr(expr, button) {
 
 const helpToggle = document.querySelector('#helpToggle');
 const help = document.querySelector('#help');
-function toggleHelp() {
-  if (help.classList.contains('hidden')) {
-    help.classList.remove('hidden');
-  } else {
-    help.classList.add('hidden');
-  }
+function toggleHelp(e) {
+	help.classList.toggle('hidden');
+	if (e) e.target.blur()
 }
 
 helpToggle.addEventListener('click', toggleHelp);
