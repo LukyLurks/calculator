@@ -7,7 +7,7 @@ course](https://www.theodinproject.com/courses/web-development-101/lessons/calcu
 
 ## Usage
 
-- Visit [this page](https://lcyne.github.io/calculator/) and try it out
+- Visit [this page](https://lukylurks.github.io/calculator/) and try it out
 
 ## Structure
 

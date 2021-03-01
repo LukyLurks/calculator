@@ -11,7 +11,7 @@ html, body {
 }
 
 table {
-  margin: 1em auto;
+  margin: 0.5em auto;
   display: inline-block;
 }
 
@@ -80,7 +80,7 @@ button, #helpToggle {
 }
 
 #helpToggle {
-	margin: 1em auto;
+	margin: 0.5em auto;
 }
 
 button:hover, #helpToggle:hover {
@@ -109,7 +109,7 @@ button:active, .active {
 }
 
 #help {
-  margin: 2em auto;
+  margin: 1em auto;
 	padding: .5em;
   transition: all .1s ease;
   outline: 1px solid rgba(105, 115, 255, .8);
